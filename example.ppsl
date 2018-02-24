@@ -1,0 +1,97 @@
+Input:
+
+shader {
+	//You can write multiple shaders with multiple versions. The engine should pick itself the highest supported on your platform.
+	//This will parse into #version 130
+	version 130; 
+	//Name of the shader.
+	name color_shader;
+	
+	//Attributes contains attributes and unforms that needs to be present in the shaders, if multiple shaders has the same names for uniforms they'll be combined.
+	attributes {
+		//Select vertex selects only vertex shaders.
+		select vertex {
+			in vec2 in_Position;
+			in vec2 in_Color;
+			out vec3 ex_Color;
+		}
+	
+		//Select fragment selects only fragment shaders.
+		select fragment {
+			in vec3 ex_Color;
+			out vec4 gl_FragColor;
+		}
+	
+		//Select total selects ALL shader types.
+		select total {
+			uniform float time;
+		}
+	}
+	
+	vertex {
+		//Always returns vec4
+		//technique main is always added to the generated main.
+		//Additional techniques can be turned on and off by setting them in-engine.
+		technique main {
+			ex_Color = in_Color;
+			return vec4(in_Position, 0.0, 1.0);
+		}
+	}
+	
+	fragment {
+		//Pre-attribute is added pre-attribute.
+		preattrib glsl {
+			precision highp float;
+		}
+
+		//Always return vec4
+		//technique main is always added to the generated main.
+		//Additional techniques can be turned on and off by setting them in-engine.
+		technique main {
+			return OtherFunction(ex_Color.xy);
+		}
+	
+		//GLSL code.
+		glsl {
+			vec3 OtherFunction(vec2 input) {
+				return vec3(input, 1.0);
+			}
+		}
+	}
+}
+shader {
+	//Version total is code that works on all GLSL versions.
+	version total;
+	name color_shader;
+}
+
+OUTPUT:
+vertex:
+#version 130
+in vec2 in_Position;
+in vec3 in_Color;
+out vec3 ex_Color;
+
+INSERT_MAIN
+
+vec4 color_shader_technique() {
+	ex_Color = in_Color;
+	return vec4(in_Position, 0.0, 1.0);
+}
+
+fragment:
+#version 130
+precision highp float;
+
+in vec3 ex_Color;
+out vec4 gl_FragColor;
+
+INSERT_MAIN
+
+vec4 color_shader_technique() {
+	return OtherFunction(ex_Color.xy);
+}
+
+vec3 color_shader_OtherFunction(vec2 input) {
+	return vec3(input, 1.0);
+}
