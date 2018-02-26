@@ -86,6 +86,10 @@ public class Player {
 			"sit": [
 				new AnimationData(0, 2, tm),
 			],
+			"shimmy": [
+				new AnimationData(0, 2, tm),
+				new AnimationData(0, 1, tm/2),
+			],
 			"jump": [
 				new AnimationData(1, 2, tm),
 			],
@@ -113,7 +117,7 @@ public class Player {
 	}
 
 	public int GetAnimationY() {
-		return animations[animation_name][0].Animation;
+		return animations[animation_name][frame%animations[animation_name].length].Animation;
 	}
 
 	public int GetAnimationTimeout() {
@@ -139,11 +143,17 @@ public class Player {
 		if (Input.IsKeyDown(KeyCode.KeyD) || Input.IsKeyDown(KeyCode.KeyRight)) {
 			flip = SpriteFlip.None;
 			momentum_x += speed;
-			if (jumps > 0 && grounded) ChangeAnimation("walk");
+			if (jumps > 0 && grounded) {
+				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				else ChangeAnimation("walk");
+			}
 		} else if (Input.IsKeyDown(KeyCode.KeyA) || Input.IsKeyDown(KeyCode.KeyLeft)) {
 			flip = SpriteFlip.FlipVertical;
 			momentum_x -= speed;
-			if (jumps > 0 && grounded) ChangeAnimation("walk");
+			if (jumps > 0 && grounded) {
+				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				else ChangeAnimation("walk");
+			}
 		} else if (Input.IsKeyDown(KeyCode.KeyDown)) {
 			ChangeAnimation("sit");	
 		} else {

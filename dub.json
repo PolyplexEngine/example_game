@@ -7,6 +7,6 @@
 	"copyright": "Copyright © 2018, Clipsey",
 	"license": "MIT",
 	"dependencies": {
-		"pp": "~>0.0.2-alpha.2"
+		"pp": "~>0.0.2-alpha.3"
 	}
 }
