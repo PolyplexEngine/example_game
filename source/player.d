@@ -11,17 +11,6 @@ import polyplex.core.game;
 import polyplex.utils.logging;
 import polyplex.math;
 
-private class AnimationData {
-	this(int frame, int animation, int timeout) {
-		this.Frame = frame;
-		this.Animation = animation;
-		this.Timeout = timeout;
-	}
-	public int Frame;
-	public int Animation;
-	public int Timeout;
-}
-
 public class Player {
 	public Vector2 Position;
 	public Rectangle Hitbox;
@@ -31,6 +20,8 @@ public class Player {
 	private float gravity = 0.4f;
 	private float gravity_add = 0f;
 
+	private Vector2 start_position;
+
 	//Animation
 	private AnimationData[][string] animations;
 
@@ -39,6 +30,8 @@ public class Player {
 	private int frame_timeout = 10;
 	private int frame_counter = 0;
 
+	//Walkin animation.
+	private bool walkin = true;
 
 	//Movement
 	private int jumps = 2;
@@ -63,7 +56,8 @@ public class Player {
 	private SpriteFlip flip = SpriteFlip.None;
 
 	this(Vector2 pos, World parent) {
-		this.Position = pos;
+		this.Position = Vector2(-32, pos.Y);
+		this.start_position = pos;
 		this.Hitbox = new Rectangle(cast(int)pos.X+4, cast(int)pos.Y, 8, 16);
 		this.parent = parent;
 		
@@ -73,7 +67,7 @@ public class Player {
 			"idle": [
 				new AnimationData(0, 0, tm)
 			],
-			"walk": [
+			"introwalk": [
 				new AnimationData(0, 1, tm),
 				new AnimationData(1, 1, tm),
 				new AnimationData(2, 1, tm),
@@ -82,6 +76,26 @@ public class Player {
 				new AnimationData(5, 1, tm),
 				new AnimationData(6, 1, tm),
 				new AnimationData(7, 1, tm),
+			],
+			"walk": [
+				new AnimationData(0, 1, tm-5),
+				new AnimationData(1, 1, tm-5),
+				new AnimationData(2, 1, tm-5),
+				new AnimationData(3, 1, tm-5),
+				new AnimationData(4, 1, tm-5),
+				new AnimationData(5, 1, tm-5),
+				new AnimationData(6, 1, tm-5),
+				new AnimationData(7, 1, tm-5),
+			],
+			"run": [
+				new AnimationData(0, 1, tm/4),
+				new AnimationData(1, 1, tm/4),
+				new AnimationData(2, 1, tm/4),
+				new AnimationData(3, 1, tm/4),
+				new AnimationData(4, 1, tm/4),
+				new AnimationData(5, 1, tm/4),
+				new AnimationData(6, 1, tm/4),
+				new AnimationData(7, 1, tm/4),
 			],
 			"sit": [
 				new AnimationData(0, 2, tm),
@@ -102,8 +116,23 @@ public class Player {
 		];
 	}
 
+	public void Kill() {
+		this.parent.ResetStage();
+	}
+
+	public void ResetState() {
+		this.momentum_x = 0;
+		this.momentum_y = 0;
+		this.jumps = 2;
+		this.walkin = true;
+		this.Position = Vector2(-32, this.start_position.Y);
+		flip = SpriteFlip.None;
+		ChangeAnimation("introwalk");
+	}
+
 	public void Init(Texture2D tex) {
 		if (Texture is null) Texture = tex;
+		ResetState();
 	}
 
 	public void ChangeAnimation(string name) {
@@ -129,6 +158,18 @@ public class Player {
 	private bool grounded = false;
 	public void Update(GameTimes times) {
 
+		if (walkin) {
+			this.Position.X += 1f;
+			if (this.Position.X >= this.start_position.X) {
+				this.Position.X = this.start_position.X;
+				walkin = false;
+			}
+			this.Hitbox = new Rectangle(cast(int)Position.X+4, cast(int)Position.Y, 8, 16);
+			this.Drawbox = new Rectangle(cast(int)Position.X, cast(int)Position.Y, 16, 16);
+			update_anim();
+			return;
+		}
+
 		// MOVE.
 		running = false;
 		speed = 2f;
@@ -145,6 +186,7 @@ public class Player {
 			momentum_x += speed;
 			if (jumps > 0 && grounded) {
 				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
 		} else if (Input.IsKeyDown(KeyCode.KeyA) || Input.IsKeyDown(KeyCode.KeyLeft)) {
@@ -152,6 +194,7 @@ public class Player {
 			momentum_x -= speed;
 			if (jumps > 0 && grounded) {
 				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
 		} else if (Input.IsKeyDown(KeyCode.KeyDown)) {
@@ -213,6 +256,9 @@ public class Player {
 		}
 
 		if (jump_timer > 0) {
+			if (jump_timer == jump_timeout-1) {
+				momentum_y = -2f;
+			}
 			momentum_y -= jump_speed;
 			jump_timer--;
 		}
@@ -222,9 +268,19 @@ public class Player {
 		gravity_add += 0.1f;
 		if (gravity_add > 0.4f) gravity_add = 0.4f;
 		
+		cap_momentum();
 
+		apply_momentum();
 
-		// CAP.
+		update_anim();
+
+		last_state_jmp = current_state_jmp;
+		if (this.Position.Y > this.parent.WorldBounds.Height) {
+			Kill();
+		}
+	}
+
+	private void cap_momentum() {
 		momentum_x /= drag;
 		momentum_y /= jump_drag;
 
@@ -232,13 +288,17 @@ public class Player {
 		if (momentum_y > momentum_y_cap) momentum_y = momentum_y_cap;
 		if (momentum_x < -momentum_x_cap) momentum_x = -momentum_x_cap;
 		if (momentum_y < -momentum_y_cap) momentum_y = -momentum_y_cap;
+	}
 
+	private void apply_momentum() {
 		//APPLY.
 		this.Position.X += momentum_x;
 		this.Position.Y += momentum_y;
 		this.Hitbox = new Rectangle(cast(int)Position.X+4, cast(int)Position.Y, 8, 16);
 		this.Drawbox = new Rectangle(cast(int)Position.X, cast(int)Position.Y, 16, 16);
-		last_state_jmp = current_state_jmp;
+	}
+
+	private void update_anim() {
 		frame_timeout = GetAnimationTimeout();
 		if (frame_counter >= frame_timeout) {
 			this.frame++;

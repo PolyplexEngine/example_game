@@ -15,6 +15,9 @@ public class Block {
 	public int IdY;
 	public Rectangle Hitbox;
 	
+	private int start_id;
+	private int start_idy;
+
 	private Rectangle Drawbox;
 	private int pos_y = 0;
 	private int bonk_i = 0;
@@ -28,6 +31,14 @@ public class Block {
 		pos_y = cast(int)position.Y;
 		this.Id = id%4;
 		this.IdY = cast(int)id/4;
+
+		this.start_id = this.Id;
+		this.start_idy = this.IdY;
+	}
+
+	public void ResetState() {
+		this.Id = this.start_id;
+		this.IdY = this.start_idy;
 	}
 
 	public static void Reset() {
