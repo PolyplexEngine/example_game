@@ -81,10 +81,13 @@ class MyGame : Game
 	{
 		Window.VSync = true;
 		//Window.AllowResizing = true;
-		this.Content = new RawContentManager();
 		GameDrawing = this.Drawing;
 		world.Init(this.Content);
 	}
+
+	public override void LoadContent() {
+		// Do nothing, not applicable in this case.
+	}	
 
 	public override void Update(GameTimes game_time)
 	{

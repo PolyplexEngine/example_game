@@ -62,9 +62,9 @@ public class World {
 
 	public void Init(ContentManager man) {
 		Block.Reset();
-		GamePlayer.Init(man.LoadTexture("player.png"));
-		Block.Init(man.LoadTexture("tiles.png"), GamePlayer);
-		Enemy.Init(man.LoadTexture("enemy_a.png"));
+		GamePlayer.Init(man.LoadTexture("player"));
+		Block.Init(man.LoadTexture("tiles"), GamePlayer);
+		Enemy.Init(man.LoadTexture("enemy_a"));
 		ResetStage();
 	}
 
@@ -79,9 +79,6 @@ public class World {
 		if (GamePlayer.Position.X > CameraX) {
 			CameraX = GamePlayer.Position.X;
 		}
-
-		// Do funky camera buissness
-		MyGame.GameDrawing.Window.Position = Vector2(CameraX, CameraY);
 
 		CameraY = GamePlayer.Position.Y+128;
 		if (CameraY > (world_height*16)) CameraY = (world_height*16);
