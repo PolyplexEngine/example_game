@@ -37,12 +37,10 @@ public class World {
 			for (int x = 0; x < width; x++) {
 				if (blockids[y][x] == 0) continue;
 				if (blockids[y][x] == -1) {
-					Enemies.length++;
-					Enemies[Enemies.length-1] = new Enemy( Vector2(x*16, y*16), this);
+					Enemies ~= new Enemy( Vector2(x*16, y*16), this);
 					continue;
 				}
-				Blocks.length++;
-				Blocks[Blocks.length-1] = new Block(blockids[y][x], Vector2(x*16, y*16));
+				Blocks ~= new Block(blockids[y][x], Vector2(x*16, y*16));
 			}
 		}
 		this.start_pos = playerpos;
