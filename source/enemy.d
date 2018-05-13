@@ -150,8 +150,8 @@ public class Enemy {
 		return animations[animation_name][frame%animations[animation_name].length].Timeout;
 	}
 
-	private KeyState last_state_jmp;
-	private KeyState current_state_jmp;
+	private KeyboardState last_state_jmp;
+	private KeyboardState current_state_jmp;
 	private bool grounded = false;
 
 	private bool walk_direction = false;
@@ -168,7 +168,7 @@ public class Enemy {
 			flip = SpriteFlip.None;
 			momentum_x += speed;
 			if (jumps > 0 && grounded) {
-				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				if (Keyboard.GetState().IsKeyDown(Keys.Down)) ChangeAnimation("shimmy");
 				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
@@ -176,7 +176,7 @@ public class Enemy {
 			flip = SpriteFlip.FlipVertical;
 			momentum_x -= speed;
 			if (jumps > 0 && grounded) {
-				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				if (Keyboard.GetState().IsKeyDown(Keys.Down)) ChangeAnimation("shimmy");
 				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
@@ -255,11 +255,11 @@ public class Enemy {
 	}
 
 	private void handle_jump() {
-		current_state_jmp = Input.GetState(KeyCode.KeyX);
-		if (current_state_jmp == KeyState.Up) {
+		current_state_jmp = Keyboard.GetState();
+		if (current_state_jmp.IsKeyDown(Keys.Up)) {
 			jump_timer = 0;
 		}
-		if (current_state_jmp == KeyState.Down && last_state_jmp == KeyState.Up) {
+		if (current_state_jmp.IsKeyDown(Keys.Up) && last_state_jmp.IsKeyUp(Keys.Up)) {
 			if (jumps > 0) {
 				//if (jumps == 2 || jump_timer > 0) {
 					jumps--;
@@ -291,8 +291,7 @@ public class Enemy {
 
 	private void apply_momentum() {
 		//APPLY.
-		this.Position.X += momentum_x;
-		this.Position.Y += momentum_y;
+		this.Position += Vector2(momentum_x, momentum_y);
 		this.Hitbox = new Rectangle(cast(int)Position.X+4, cast(int)Position.Y, 8, 16);
 		this.Drawbox = new Rectangle(cast(int)Position.X, cast(int)Position.Y, 16, 16);
 	}

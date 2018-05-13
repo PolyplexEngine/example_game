@@ -79,7 +79,7 @@ class MyGame : Game
 
 	public override void Init()
 	{
-		Window.VSync = true;
+		Window.VSync = VSyncState.VSync;
 		//Window.AllowResizing = true;
 		GameDrawing = this.Drawing;
 		world.Init(this.Content);

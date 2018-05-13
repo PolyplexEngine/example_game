@@ -83,7 +83,7 @@ public class World {
 		CameraY = GamePlayer.Position.Y+128;
 		if (CameraY > (world_height*16)) CameraY = (world_height*16);
 		if (CameraX -(MyGame.GameDrawing.Window.Width/2)/CameraZoom < 0) CameraX = (MyGame.GameDrawing.Window.Width/2)/CameraZoom;
-		this.camera.Position = Vector2(CameraX, CameraY);
+		this.camera.Position = Vector3(CameraX, CameraY, 0);
 
 		foreach(Enemy e; Enemies) {
 			if (e is null) continue;

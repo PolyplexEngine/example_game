@@ -153,13 +153,13 @@ public class Player {
 		return animations[animation_name][frame%animations[animation_name].length].Timeout;
 	}
 
-	private KeyState last_state_jmp;
-	private KeyState current_state_jmp;
+	private KeyboardState last_state_jmp;
+	private KeyboardState current_state_jmp;
 	private bool grounded = false;
 	public void Update(GameTimes times) {
 
 		if (walkin) {
-			this.Position.X += 1f;
+			this.Position += Vector2(1f, 0f);
 			if (this.Position.X >= this.start_position.X) {
 				this.Position.X = this.start_position.X;
 				walkin = false;
@@ -175,29 +175,29 @@ public class Player {
 		speed = 2f;
 		drag = 2f;
 
-		if (Input.IsKeyDown(KeyCode.KeyZ)) {
+		if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) {
 			running = true;
 			speed = 4f;
 			drag = 2f;
 		}
 		
-		if (Input.IsKeyDown(KeyCode.KeyD) || Input.IsKeyDown(KeyCode.KeyRight)) {
+		if (Keyboard.GetState().IsKeyDown(Keys.D) || Keyboard.GetState().IsKeyDown(Keys.Right)) {
 			flip = SpriteFlip.None;
 			momentum_x += speed;
 			if (jumps > 0 && grounded) {
-				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				if (Keyboard.GetState().IsKeyDown(Keys.Down)) ChangeAnimation("shimmy");
 				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
-		} else if (Input.IsKeyDown(KeyCode.KeyA) || Input.IsKeyDown(KeyCode.KeyLeft)) {
+		} else if (Keyboard.GetState().IsKeyDown(Keys.A) || Keyboard.GetState().IsKeyDown(Keys.Left)) {
 			flip = SpriteFlip.FlipVertical;
 			momentum_x -= speed;
 			if (jumps > 0 && grounded) {
-				if (Input.IsKeyDown(KeyCode.KeyDown)) ChangeAnimation("shimmy");
+				if (Keyboard.GetState().IsKeyDown(Keys.Down)) ChangeAnimation("shimmy");
 				else if (running) ChangeAnimation("run");
 				else ChangeAnimation("walk");
 			}
-		} else if (Input.IsKeyDown(KeyCode.KeyDown)) {
+		} else if (Keyboard.GetState().IsKeyDown(Keys.Down)) {
 			ChangeAnimation("sit");	
 		} else {
 			if (jumps > 0 && grounded) ChangeAnimation("idle");
@@ -240,11 +240,11 @@ public class Player {
 		}
 
 		// JUMP.
-		current_state_jmp = Input.GetState(KeyCode.KeyX);
-		if (current_state_jmp == KeyState.Up) {
+		current_state_jmp = Keyboard.GetState();
+		if (current_state_jmp.IsKeyUp(Keys.Space)) {
 			jump_timer = 0;
 		}
-		if (current_state_jmp == KeyState.Down && last_state_jmp == KeyState.Up) {
+		if (current_state_jmp.IsKeyDown(Keys.Space) && last_state_jmp.IsKeyUp(Keys.Space)) {
 			if (jumps > 0) {
 				//if (jumps == 2 || jump_timer > 0) {
 					jumps--;
@@ -292,8 +292,7 @@ public class Player {
 
 	private void apply_momentum() {
 		//APPLY.
-		this.Position.X += momentum_x;
-		this.Position.Y += momentum_y;
+		this.Position += Vector2(momentum_x, momentum_y);
 		this.Hitbox = new Rectangle(cast(int)Position.X+4, cast(int)Position.Y, 8, 16);
 		this.Drawbox = new Rectangle(cast(int)Position.X, cast(int)Position.Y, 16, 16);
 	}
