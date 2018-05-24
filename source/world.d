@@ -5,6 +5,7 @@ import example_game.block;
 import example_game.app;
 import polyplex.core.game;
 import polyplex.core.render;
+import polyplex.core.audio;
 import polyplex.core.content;
 import polyplex.math;
 import polyplex.utils.logging;
@@ -62,7 +63,7 @@ public class World {
 
 	public void Init(ContentManager man) {
 		Block.Reset();
-		GamePlayer.Init(man.LoadTexture("player"));
+		GamePlayer.Init(man.LoadTexture("player"), new AudioSource(man.LoadSound("jump")));
 		Block.Init(man.LoadTexture("tiles"), GamePlayer);
 		Enemy.Init(man.LoadTexture("enemy_a"));
 		ResetStage();
@@ -74,7 +75,7 @@ public class World {
 			b.Update(times);
 		}
 		GamePlayer.Update(times);
-		this.camera.Origin = Vector2(MyGame.GameDrawing.Window.Width/2, MyGame.GameDrawing.Window.Height);
+		this.camera.Origin = Vector3(MyGame.GameDrawing.Window.Width/2, MyGame.GameDrawing.Window.Height, -1);
 		this.camera.Zoom = CameraZoom;
 		if (GamePlayer.Position.X > CameraX) {
 			CameraX = GamePlayer.Position.X;

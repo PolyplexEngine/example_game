@@ -5,17 +5,21 @@ import example_game.block;
 
 import polyplex.core.content;
 import polyplex.core.render;
+import polyplex.core.audio;
 import polyplex.core.color;
 import polyplex.core.input;
 import polyplex.core.game;
 import polyplex.utils.logging;
 import polyplex.math;
+import polyplex.utils.random;
 
 public class Player {
 	public Vector2 Position;
 	public Rectangle Hitbox;
 	public Rectangle Drawbox;
 
+
+	private static AudioSource jump_snd;
 	private static Texture2D Texture;
 	private float gravity = 0.4f;
 	private float gravity_add = 0f;
@@ -52,6 +56,7 @@ public class Player {
 	private float jump_drag = 1.2f;
 	private World parent;
 
+
 	//Animation
 	private SpriteFlip flip = SpriteFlip.None;
 
@@ -62,6 +67,8 @@ public class Player {
 		this.parent = parent;
 		
 		int tm = 10;
+
+		rand = new Random();
 
 		animations = [
 			"idle": [
@@ -130,8 +137,9 @@ public class Player {
 		ChangeAnimation("introwalk");
 	}
 
-	public void Init(Texture2D tex) {
+	public void Init(Texture2D tex, AudioSource src) {
 		if (Texture is null) Texture = tex;
+		if (jump_snd is null) jump_snd = src;
 		ResetState();
 	}
 
@@ -246,6 +254,10 @@ public class Player {
 		}
 		if (current_state_jmp.IsKeyDown(Keys.Space) && last_state_jmp.IsKeyUp(Keys.Space)) {
 			if (jumps > 0) {
+
+				//Very ugly SFX code
+				jump_snd.Pitch = 0.7f+rand.NextFloat()/12;
+				jump_snd.Play();
 				//if (jumps == 2 || jump_timer > 0) {
 					jumps--;
 					jump_timer = jump_timeout;
@@ -279,6 +291,7 @@ public class Player {
 			Kill();
 		}
 	}
+	Random rand;
 
 	private void cap_momentum() {
 		momentum_x /= drag;
