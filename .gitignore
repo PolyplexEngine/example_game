@@ -24,3 +24,6 @@ docs/
 *.lst
 
 libs/
+
+./example_game
+example_game

@@ -15,11 +15,13 @@ import polyplex.utils.random;
 
 public class Player {
 	public Vector2 Position;
-	public Rectangle Hitbox;
-	public Rectangle Drawbox;
+	public Rectangle Hitbox = new Rectangle(0, 0, 16, 16);
+	public Rectangle Drawbox = new Rectangle(0, 0, 16, 16);
+
+	public Vector2 Momentum() { return Vector2(momentum_x, momentum_y); }
 
 
-	private static AudioSource jump_snd;
+	private static SoundEffect jump_snd;
 	private static Texture2D Texture;
 	private float gravity = 0.4f;
 	private float gravity_add = 0f;
@@ -55,6 +57,7 @@ public class Player {
 	private float drag = 2f;
 	private float jump_drag = 1.2f;
 	private World parent;
+
 
 
 	//Animation
@@ -123,6 +126,10 @@ public class Player {
 		];
 	}
 
+	~this() {
+		destroy(jump_snd);
+	}
+
 	public void Kill() {
 		this.parent.ResetStage();
 	}
@@ -137,9 +144,12 @@ public class Player {
 		ChangeAnimation("introwalk");
 	}
 
-	public void Init(Texture2D tex, AudioSource src) {
+	public void Init(Texture2D tex, SoundEffect src) {
 		if (Texture is null) Texture = tex;
-		if (jump_snd is null) jump_snd = src;
+		if (jump_snd is null) {
+			jump_snd = src;
+			jump_snd.Gain = .3f;
+		}
 		ResetState();
 	}
 
@@ -165,15 +175,15 @@ public class Player {
 	private KeyboardState current_state_jmp;
 	private bool grounded = false;
 	public void Update(GameTimes times) {
-
 		if (walkin) {
 			this.Position += Vector2(1f, 0f);
 			if (this.Position.X >= this.start_position.X) {
 				this.Position.X = this.start_position.X;
 				walkin = false;
 			}
-			this.Hitbox = new Rectangle(cast(int)Position.X+4, cast(int)Position.Y, 8, 16);
-			this.Drawbox = new Rectangle(cast(int)Position.X, cast(int)Position.Y, 16, 16);
+			this.Hitbox.X = cast(int)Position.X+4;
+			this.Drawbox.X = cast(int)Position.X;
+			this.Drawbox.Y = cast(int)Position.Y;
 			update_anim();
 			return;
 		}
@@ -215,8 +225,8 @@ public class Player {
 
 		// COLLIDE Y (& BORDER).
 
-		if (this.Position.X-1 + momentum_x < parent.CameraX - ((MyGame.GameDrawing.Window.Width/2)/parent.CameraZoom)) {
-			this.Position.X = parent.CameraX - ((MyGame.GameDrawing.Window.Width/2)/parent.CameraZoom)-1;
+		if (this.Position.X-1 + momentum_x < parent.CameraX - ((Renderer.Window.ClientBounds.Width/2)/parent.CameraZoom)) {
+			this.Position.X = parent.CameraX - ((Renderer.Window.ClientBounds.Width/2)/parent.CameraZoom)-1;
 			momentum_x = 0;
 		}
 		foreach(Block b; parent.Blocks) {

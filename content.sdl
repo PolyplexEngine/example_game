@@ -1,0 +1,29 @@
+info:license "BSL-1.0"
+info:author  "Clipsey"
+
+path:input  "in_content/"
+path:output "content/"
+
+recipe name="Audio" {
+	// Audio
+	audio "jump.ogg"					license="CC" 		author="Clipsey"
+}
+
+recipe name="Shaders" path="shaders/" {
+	shader "block_shader"				license="BSL-1.0"	author="Clipsey"
+	shader "ss_wob"						license="BSL-1.0"	author="Clipsey"
+}
+
+recipe name="Music" path="music/" {
+	// The music
+	audio "arpeggio.ogg"				license="CC" 		author="Clipsey"
+	audio "mechanical_nightmare.ogg"	license="CC" 		author="Clipsey"
+}
+
+recipe name="Textures" {
+	// Textures
+	texture "enemy_a.png"				license="CC" 	type="png" 		author="Shramper"
+	texture "player.png"				license="CC" 	type="png" 		author="Shramper"
+	texture "tiles.png"					license="CC" 	type="pti" 		author="Shramper"
+	texture "example_bg.png"			license="CC" 	type="pti" 		author=""
+}

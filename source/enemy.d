@@ -191,13 +191,10 @@ public class Enemy {
 			Kill();
 		}
 
-		if (this.parent.GamePlayer.Hitbox.Intersects(this.Drawbox.Displace(0, -4))) {
-			Kill();
-			return;
-		}
 
-		if (this.parent.GamePlayer.Hitbox.Intersects(this.Drawbox.Expand(5, -6))) {
-			this.parent.GamePlayer.Kill();
+		if (this.parent.GamePlayer.Hitbox.Intersects(this.Drawbox)) {
+			if (this.parent.GamePlayer.Momentum.Y > 1) Kill();
+			else parent.GamePlayer.Kill();
 			return;
 		}
 

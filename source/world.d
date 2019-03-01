@@ -3,10 +3,8 @@ import example_game.player;
 import example_game.enemy;
 import example_game.block;
 import example_game.app;
-import polyplex.core.game;
-import polyplex.core.render;
 import polyplex.core.audio;
-import polyplex.core.content;
+import polyplex.core;
 import polyplex.math;
 import polyplex.utils.logging;
 
@@ -25,9 +23,21 @@ public class World {
 	public float CameraY = 0f;
 	public float CameraZoom = 3f;
 
+	private int timeUniform;
+	public Shader BlockShader;
+	public Shader ScreenspaceWobble;
 	public Block[] Blocks;
 	public Enemy[] Enemies;
 	public Player GamePlayer;
+
+	public Music music;
+	public Music music2;
+
+	public BandpassFilter filter;
+	public ReverbEffect reverbEf;
+
+	public Framebuffer rendBuffer;
+	public Texture2D backgroundScroller;
 
 	this(int[][] blockids, Vector2 playerpos) {
 		int height = cast(int)blockids.length;
@@ -51,7 +61,7 @@ public class World {
 	}
 
 	public void ResetStage() {
-		CameraX = (MyGame.GameDrawing.Window.Width/2)/CameraZoom;
+		CameraX = (Renderer.Window.ClientBounds.Width/2)/CameraZoom;
 		GamePlayer.ResetState();
 		foreach(Block b; Blocks) {
 			b.ResetState();
@@ -61,50 +71,127 @@ public class World {
 		}
 	}
 
+	public void Unload() {
+		destroy(music);
+		destroy(music2);
+		destroy(Blocks);
+		destroy(Enemies);
+		destroy(GamePlayer);
+	}
+
 	public void Init(ContentManager man) {
 		Block.Reset();
-		GamePlayer.Init(man.LoadTexture("player"), new AudioSource(man.LoadSound("jump")));
-		Block.Init(man.LoadTexture("tiles"), GamePlayer);
-		Enemy.Init(man.LoadTexture("enemy_a"));
+		GamePlayer.Init(man.Load!Texture2D("player"), man.Load!SoundEffect("!in_content/jump.ogg"));
+		Block.Init(man.Load!Texture2D("tiles"), GamePlayer);
+		BlockShader = man.Load!Shader("shaders/block_shader");
+		ScreenspaceWobble = man.Load!Shader("shaders/ss_wob");
+		backgroundScroller = man.Load!Texture2D("example_bg");
+		timeUniform = BlockShader.GetUniform("time");
+		BlockShader.SetUniform(timeUniform, 0);
+		Enemy.Init(man.Load!Texture2D("enemy_a"));
 		ResetStage();
+		filter = new BandpassFilter();
+		filter.GainLow = 0f;
+		filter.GainHigh = 0f;
+		reverbEf = new ReverbEffect();
+		reverbEf.Decay = 4f;
+
+
+		music = man.Load!Music("music/arpeggio");
+		music.Looping = true;
+		music.Pitch = 1.3f;
+		music.Gain = 0.7f;
+		music.Filter = filter;
+		music.Effect = reverbEf;
+		//music.Play();
+		
+		music2 = man.Load!Music("music/mechanical_nightmare");
+		music2.Looping = true;
+		music2.Pitch = 1.0f;
+		music2.Gain = 0f;
+		music2.Filter = filter;
+		music2.Play();
+
+		rendBuffer = new Framebuffer(Renderer.Window.ClientBounds.Width, Renderer.Window.ClientBounds.Height);
+
 	}
 
 	public void Update(GameTimes times) {
+		BlockShader.SetUniform(timeUniform, cast(float)times.TotalTime.Milliseconds);
+		ScreenspaceWobble.SetUniform(timeUniform, cast(float)times.TotalTime.Milliseconds);
 		foreach(Block b; Blocks) {
 			if (b is null) continue;
 			b.Update(times);
 		}
 		GamePlayer.Update(times);
-		this.camera.Origin = Vector3(MyGame.GameDrawing.Window.Width/2, MyGame.GameDrawing.Window.Height, -1);
+		this.camera.Origin = Vector2(Renderer.Window.ClientBounds.Width/2, Renderer.Window.ClientBounds.Height);
 		this.camera.Zoom = CameraZoom;
 		if (GamePlayer.Position.X > CameraX) {
 			CameraX = GamePlayer.Position.X;
 		}
 
+		/*if (GamePlayer.Position.X > Renderer.Window.ClientBounds.Width) {
+
+			if (music.Gain > 0) music.Gain = music.Gain - .005f;
+			if (music.Gain < 0) music.Gain = 0f;
+			if (music2.Gain < .3f) music2.Gain = music2.Gain + .005f;
+			if (music2.Gain > .3f) music2.Gain = .3f;
+		} else {
+			if (music2.Gain > 0) music2.Gain = music2.Gain - .005f;
+			if (music2.Gain < 0) music2.Gain = 0f;
+			if (music.Gain < .7f) music.Gain = music.Gain + .005f;
+			if (music.Gain > .7f) music.Gain = .7f;
+
+		}*/
+
 		CameraY = GamePlayer.Position.Y+128;
 		if (CameraY > (world_height*16)) CameraY = (world_height*16);
-		if (CameraX -(MyGame.GameDrawing.Window.Width/2)/CameraZoom < 0) CameraX = (MyGame.GameDrawing.Window.Width/2)/CameraZoom;
-		this.camera.Position = Vector3(CameraX, CameraY, 0);
+		if (CameraX -(Renderer.Window.ClientBounds.Width/2)/CameraZoom < 0) CameraX = (Renderer.Window.ClientBounds.Width/2)/CameraZoom;
+		this.camera.Position = Vector2(CameraX, CameraY);
 
 		foreach(Enemy e; Enemies) {
 			if (e is null) continue;
 			e.Update(times);
 		}
+		import std.stdio;
+		//writeln(music.Tell);
 	}
 
 	public void Draw(GameTimes times, SpriteBatch batch) {
-		batch.Begin(SpriteSorting.Deferred, Blending.NonPremultiplied, Sampling.PointClamp, null, camera);
-		foreach(Block b; Blocks) {
-			if (b is null) continue;
-			b.Draw(times, batch);
-		}
-		GamePlayer.Draw(times, batch);
+		// TODO: Make this only be used once the window actually resizes, it's a really bad idea to do this every frame.
+		rendBuffer.Resize(Renderer.Window.ClientBounds.Width, Renderer.Window.ClientBounds.Height);
 
-		foreach(Enemy e; Enemies) {
-			if (e is null) continue;
-			e.Draw(times, batch);
-		}
+		Rectangle winBuff = new Rectangle(0, 0, Renderer.Window.ClientBounds.Width, Renderer.Window.ClientBounds.Height);
+		Rectangle winBuffX = new Rectangle(cast(int)(CameraX+(times.TotalTime.Milliseconds/10f)), cast(int)(times.TotalTime.Milliseconds/10f), Renderer.Window.ClientBounds.Width, Renderer.Window.ClientBounds.Height);
+	
+		// Begin rendering to framebuffer.
+		rendBuffer.Begin();
+			batch.Begin(SpriteSorting.Deferred, Blending.NonPremultiplied, Sampling.PointWrap, RasterizerState.Default, BlockShader, null);
+			batch.Draw(backgroundScroller, winBuff, winBuffX, 0f, Vector2.Zero, Color.Gray);
+			batch.End();
+			
+			batch.Begin(SpriteSorting.Deferred, Blending.NonPremultiplied, Sampling.PointClamp, RasterizerState.Default, null, camera);
+			GamePlayer.Draw(times, batch);
+
+			foreach(Enemy e; Enemies) {
+				if (e is null) continue;
+				e.Draw(times, batch);
+			}
+			batch.End();
+
+			batch.Begin(SpriteSorting.Deferred, Blending.NonPremultiplied, Sampling.PointClamp, RasterizerState.Default, null, camera);
+			foreach(Block b; Blocks) {
+				if (b is null) continue;
+				b.Draw(times, batch);
+			}
+			batch.End();
+		rendBuffer.End();
+
+		// Draw the framebuffer to the screen.
+		batch.Begin(SpriteSorting.Deferred, Blending.NonPremultiplied, Sampling.PointClamp, RasterizerState.Default, ScreenspaceWobble, null);
+			batch.Draw(rendBuffer, winBuff, new Rectangle(0, 0, rendBuffer.Width, rendBuffer.Height), 0, Vector2.Zero, Color.White);
 		batch.End();
+			
 	}
 
 }

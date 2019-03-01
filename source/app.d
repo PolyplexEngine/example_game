@@ -2,19 +2,10 @@ module example_game.app;
 import std.stdio;
 import polyplex;
 import polyplex.math;
-import polyplex.core;
-import polyplex.utils;
 
 import example_game.world;
 import example_game.player;
 import example_game.block;
-
-
-import derelict.sdl2.sdl;
-import std.conv;
-import sev.event;
-
-import core.thread;
 
 private static string[] arg;
 
@@ -23,8 +14,9 @@ void main(string[] args)
 	arg = args;
 	LogLevel |= LogType.Info;
 	LogLevel |= LogType.Debug;
-	BasicGameLauncher.InitSDL();
-	BasicGameLauncher.LaunchGame(new MyGame("Example Game"), args);
+	LogLevel |= LogType.VerboseDebug;
+	MyGame game = new MyGame();
+	game.Run();
 }
 
 public class AnimationData {
@@ -42,11 +34,14 @@ class MyGame : Game
 {
 	private World world;
 
-	public static Renderer GameDrawing;
-
-	this(string title)
+	public override void Init()
 	{
-		super(title, null);
+		Window.VSync = VSyncState.VSync;
+		Window.AllowResizing = true;
+	}
+
+	public override void LoadContent() {
+		// Do nothing, not applicable in this case.
 		world = new World([
 			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -75,19 +70,12 @@ class MyGame : Game
 			[6, 6, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 			[8, 8, 8, 8, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
 			], Vector2(2, 3));
-	}
-
-	public override void Init()
-	{
-		Window.VSync = VSyncState.VSync;
-		//Window.AllowResizing = true;
-		GameDrawing = this.Drawing;
 		world.Init(this.Content);
 	}
 
-	public override void LoadContent() {
-		// Do nothing, not applicable in this case.
-	}	
+	public override void UnloadContent() {
+		world.Unload();
+	}
 
 	public override void Update(GameTimes game_time)
 	{
@@ -96,7 +84,7 @@ class MyGame : Game
 
 	public override void Draw(GameTimes game_time)
 	{
-		Drawing.ClearColor(Color.CornflowerBlue);
+		Renderer.ClearColor(Color.Black);
 		world.Draw(game_time, sprite_batch);
 	}
 }
