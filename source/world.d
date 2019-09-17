@@ -81,7 +81,7 @@ public class World {
 
 	public void Init(ContentManager man) {
 		Block.Reset();
-		GamePlayer.Init(man.Load!Texture2D("player"), man.Load!SoundEffect("!in_content/jump.ogg"));
+		GamePlayer.Init(man.Load!Texture2D("player"), man.Load!SoundEffect("jump"));
 		Block.Init(man.Load!Texture2D("tiles"), GamePlayer);
 		BlockShader = man.Load!Shader("shaders/block_shader");
 		ScreenspaceWobble = man.Load!Shader("shaders/ss_wob");
