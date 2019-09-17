@@ -156,7 +156,7 @@ public class Enemy {
 
 	private bool walk_direction = false;
 
-	public void Update(GameTimes times) {
+	public void Update(GameTime times) {
 		if (dead) return;
 
 		// MOVE.
@@ -302,7 +302,7 @@ public class Enemy {
 		frame_counter++;
 	}
 
-	public void Draw(GameTimes times, SpriteBatch batch) {
+	public void Draw(GameTime times, SpriteBatch batch) {
 		batch.Draw(Texture, this.Drawbox, new Rectangle(GetAnimationX()*16, GetAnimationY()*16, 16, 16), Color.White, flip);
 	}
 }

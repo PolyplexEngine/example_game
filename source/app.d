@@ -77,14 +77,14 @@ class MyGame : Game
 		world.Unload();
 	}
 
-	public override void Update(GameTimes game_time)
+	public override void Update(GameTime game_time)
 	{
 		world.Update(game_time);
 	}
 
-	public override void Draw(GameTimes game_time)
+	public override void Draw(GameTime game_time)
 	{
 		Renderer.ClearColor(Color.Black);
-		world.Draw(game_time, sprite_batch);
+		world.Draw(game_time, spriteBatch);
 	}
 }

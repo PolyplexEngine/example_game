@@ -116,7 +116,7 @@ public class World {
 
 	}
 
-	public void Update(GameTimes times) {
+	public void Update(GameTime times) {
 		BlockShader.SetUniform(timeUniform, cast(float)times.TotalTime.Milliseconds);
 		ScreenspaceWobble.SetUniform(timeUniform, cast(float)times.TotalTime.Milliseconds);
 		foreach(Block b; Blocks) {
@@ -157,7 +157,7 @@ public class World {
 		//writeln(music.Tell);
 	}
 
-	public void Draw(GameTimes times, SpriteBatch batch) {
+	public void Draw(GameTime times, SpriteBatch batch) {
 		// TODO: Make this only be used once the window actually resizes, it's a really bad idea to do this every frame.
 		rendBuffer.Resize(Renderer.Window.ClientBounds.Width, Renderer.Window.ClientBounds.Height);
 

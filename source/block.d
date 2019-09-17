@@ -59,7 +59,7 @@ public class Block {
 		}
 	}
 
-	public void Update(GameTimes times) {
+	public void Update(GameTime times) {
 		if (bonk_i_timer <= 0){
 			bonk_i--;
 			if (bonk_i < 0) bonk_i = 0;
@@ -69,7 +69,7 @@ public class Block {
 		this.Drawbox.Y = pos_y-bonk_i;
 	}
 
-	public void Draw(GameTimes times, SpriteBatch batch) {
+	public void Draw(GameTime times, SpriteBatch batch) {
 		batch.Draw(texture, Drawbox, new Rectangle(Id*16, IdY*16, 16, 16), Color.White, SpriteFlip.None, 0f);
 	}
 }
