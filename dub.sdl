@@ -1,0 +1,6 @@
+name "example_game"
+description "An example game using the polyplex framework."
+authors "Clipsey"
+copyright "Copyright © 2018, Clipsey"
+license "MIT"
+dependency "pp" version="~master"

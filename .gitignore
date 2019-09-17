@@ -27,3 +27,5 @@ libs/
 
 ./example_game
 example_game
+dub.selections.json
+content/

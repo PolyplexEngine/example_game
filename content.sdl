@@ -1,7 +1,7 @@
 info:license "BSL-1.0"
 info:author  "Clipsey"
 
-path:input  "in_content/"
+path:input  "raw/"
 path:output "content/"
 
 recipe name="Audio" {
